@@ -1,5 +1,24 @@
 import ai from '../config/gemini.js';
 
+const generateContentWithFallback = async (prompt, imagePart = null) => {
+  try {
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const content = imagePart ? [prompt, imagePart] : prompt;
+    const result = await model.generateContent(content);
+    return result.response.text();
+  } catch (err1_5) {
+    console.warn(`gemini-1.5-flash failed, trying gemini-2.0-flash. Error: ${err1_5.message}`);
+    try {
+      const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const content = imagePart ? [prompt, imagePart] : prompt;
+      const result = await model.generateContent(content);
+      return result.response.text();
+    } catch (err2_0) {
+      throw new Error(`Both gemini-1.5-flash and gemini-2.0-flash failed. 1.5 Error: ${err1_5.message}. 2.0 Error: ${err2_0.message}`);
+    }
+  }
+};
+
 /**
  * AI Recommendation Engine
  * Recommends clothes from the marketplace based on user wardrobe preferences and history.
@@ -56,9 +75,7 @@ export const generateSwapRecommendations = async (userCloset, marketplaceListing
       ]
     `;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(prompt);
-    const textResponse = result.response.text();
+    const textResponse = await generateContentWithFallback(prompt);
     
     const cleanJson = textResponse.replace(/```json|```/g, '').trim();
     return JSON.parse(cleanJson);
@@ -104,9 +121,8 @@ export const chatFashionAssistant = async (messages, userProfile = {}) => {
     const formattedHistory = messages.map(m => `${m.sender === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n');
     const finalPrompt = `${contextPrompt}\n\n${formattedHistory}\nAssistant:`;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(finalPrompt);
-    return result.response.text();
+    const reply = await generateContentWithFallback(finalPrompt);
+    return reply;
 
   } catch (error) {
     console.error("AI Assistant Error (using mock fallback):", error.message);
@@ -169,9 +185,7 @@ export const generateListingDetailsFromImage = async (base64Image, mimeType = 'i
       }
     `;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent([prompt, imagePart]);
-    const textResponse = result.response.text();
+    const textResponse = await generateContentWithFallback(prompt, imagePart);
     
     const cleanJson = textResponse.replace(/```json|```/g, '').trim();
     return JSON.parse(cleanJson);
