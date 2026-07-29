@@ -23,7 +23,8 @@ const generateRefreshToken = (userId) => {
 
 // Helper: Set Refresh Token Cookie
 const setRefreshTokenCookie = (res, token) => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = process.env.NODE_ENV === 'production' || 
+                 (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https'));
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure: isProd,
@@ -185,7 +186,8 @@ export const logout = async (req, res, next) => {
       }
     }
 
-    const isProd = process.env.NODE_ENV === 'production';
+    const isProd = process.env.NODE_ENV === 'production' || 
+                   (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https'));
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: isProd,
