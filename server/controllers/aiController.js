@@ -122,17 +122,49 @@ export const getGeminiDiagnostics = async (req, res, next) => {
 
     const sanitizedKey = rawKey.trim().replace(/^["']|["']$/g, '');
     
-    // Attempt a lightweight test call to Google Gemini
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const tempAi = new GoogleGenerativeAI(sanitizedKey);
-    const model = tempAi.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent("Say 'Gemini API is functional!'");
-    const responseText = result.response.text();
+    
+    // 1. Fetch all models authorized for this key
+    let modelsList = [];
+    try {
+      const listResult = await tempAi.listModels();
+      if (listResult && listResult.models) {
+        modelsList = listResult.models.map(m => ({
+          name: m.name,
+          displayName: m.displayName,
+          supportedGenerationMethods: m.supportedGenerationMethods
+        }));
+      }
+    } catch (listErr) {
+      console.warn("Failed to retrieve models list:", listErr.message);
+    }
+
+    // 2. Attempt lightweight content generation using different models
+    let testResponse = null;
+    let modelUsed = 'gemini-1.5-flash';
+    
+    try {
+      const model = tempAi.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const result = await model.generateContent("Say 'Gemini 1.5 is functional!'");
+      testResponse = result.response.text();
+    } catch (err1.5) {
+      try {
+        modelUsed = 'gemini-2.0-flash';
+        const model = tempAi.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const result = await model.generateContent("Say 'Gemini 2.0 is functional!'");
+        testResponse = result.response.text();
+      } catch (err2.0) {
+        throw new Error(`Both gemini-1.5-flash and gemini-2.0-flash failed. 1.5 Error: ${err1.5.message}. 2.0 Error: ${err2.0.message}`);
+      }
+    }
 
     res.status(200).json({
       success: true,
-      message: 'Gemini API is fully functional!',
-      response: responseText,
+      message: 'Gemini API is functional!',
+      modelUsed,
+      response: testResponse,
+      availableModels: modelsList,
       keyLength: rawKey.length,
       keySnippet: `${rawKey.substring(0, 5)}...${rawKey.substring(rawKey.length - 4)}`,
       sanitizedSnippet: `${sanitizedKey.substring(0, 5)}...${sanitizedKey.substring(sanitizedKey.length - 4)}`
@@ -140,7 +172,7 @@ export const getGeminiDiagnostics = async (req, res, next) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Gemini API call failed with exception.',
+      message: 'Gemini API test failed.',
       errorMessage: err.message,
       errorStack: err.stack
     });
