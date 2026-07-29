@@ -113,8 +113,12 @@ app.use((req, res, next) => {
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
     cookieHeader.split(';').forEach(cookie => {
-      const parts = cookie.split('=');
-      req.cookies[parts[0].trim()] = (parts[1] || '').trim();
+      const index = cookie.indexOf('=');
+      if (index !== -1) {
+        const key = cookie.substring(0, index).trim();
+        const val = cookie.substring(index + 1).trim();
+        req.cookies[key] = val;
+      }
     });
   }
   next();

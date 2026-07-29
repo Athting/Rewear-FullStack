@@ -56,7 +56,7 @@ export const generateSwapRecommendations = async (userCloset, marketplaceListing
       ]
     `;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const textResponse = result.response.text();
     
@@ -104,7 +104,7 @@ export const chatFashionAssistant = async (messages, userProfile = {}) => {
     const formattedHistory = messages.map(m => `${m.sender === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n');
     const finalPrompt = `${contextPrompt}\n\n${formattedHistory}\nAssistant:`;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(finalPrompt);
     return result.response.text();
 
@@ -115,6 +115,10 @@ export const chatFashionAssistant = async (messages, userProfile = {}) => {
     const lastMsg = messages[messages.length - 1]?.text?.toLowerCase() || '';
     if (lastMsg.includes('jacket') || lastMsg.includes('swap')) {
       return "Hello! Based on our circular model, I suggest swapping out heavy winter jackets you no longer use for lighter spring/summer linen blazers. That helps keep materials in high circulation!";
+    }
+    
+    if (process.env.GEMINI_API_KEY) {
+      return "I'm sorry, I'm having trouble connecting to my Gemini AI services right now. Please try sending your message again in a moment!";
     }
     return "Hi there! I'm the ReWear AI assistant. Once you configure your GEMINI_API_KEY, I will be able to analyze your closet in real-time and suggest customized outfits for you. In the meantime, let's browse the marketplace for fresh exchanges!";
   }
@@ -165,7 +169,7 @@ export const generateListingDetailsFromImage = async (base64Image, mimeType = 'i
       }
     `;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent([prompt, imagePart]);
     const textResponse = result.response.text();
     
