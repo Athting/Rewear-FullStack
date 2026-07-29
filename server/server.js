@@ -30,6 +30,27 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Dynamic CORS configurations supporting Vercel production hosting
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5174'
+].filter(Boolean);
+
+const checkOrigin = (origin, callback) => {
+  if (!origin) return callback(null, true);
+  const isAllowed = allowedOrigins.includes(origin) || 
+                    origin.endsWith('.vercel.app') || 
+                    origin.includes('vercel.app');
+  if (isAllowed) {
+    callback(null, true);
+  } else {
+    callback(new Error('Blocked by CORS'));
+  }
+};
+
 // Serve local uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -38,7 +59,7 @@ const httpServer = createServer(app);
 // Socket.IO Server Setup
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: checkOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
@@ -54,7 +75,7 @@ connectDB();
 app.use(helmet());
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: checkOrigin,
   credentials: true
 }));
 
