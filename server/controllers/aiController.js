@@ -105,3 +105,44 @@ export const generateDescriptionFromVision = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Test and diagnose Gemini API connectivity
+// @route   GET /api/ai/test-gemini
+// @access  Public
+export const getGeminiDiagnostics = async (req, res, next) => {
+  try {
+    const rawKey = process.env.GEMINI_API_KEY;
+    
+    if (!rawKey) {
+      return res.status(200).json({
+        success: false,
+        message: 'GEMINI_API_KEY environment variable is completely empty or missing on the server.'
+      });
+    }
+
+    const sanitizedKey = rawKey.trim().replace(/^["']|["']$/g, '');
+    
+    // Attempt a lightweight test call to Google Gemini
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const tempAi = new GoogleGenerativeAI(sanitizedKey);
+    const model = tempAi.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent("Say 'Gemini API is functional!'");
+    const responseText = result.response.text();
+
+    res.status(200).json({
+      success: true,
+      message: 'Gemini API is fully functional!',
+      response: responseText,
+      keyLength: rawKey.length,
+      keySnippet: `${rawKey.substring(0, 5)}...${rawKey.substring(rawKey.length - 4)}`,
+      sanitizedSnippet: `${sanitizedKey.substring(0, 5)}...${sanitizedKey.substring(sanitizedKey.length - 4)}`
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Gemini API call failed with exception.',
+      errorMessage: err.message,
+      errorStack: err.stack
+    });
+  }
+};
