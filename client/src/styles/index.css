@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* Base variables & custom themes */
+@theme {
+  --color-primary: #2E7D32;
+  --color-primary-hover: #1b5e20;
+  --color-secondary: #66BB6A;
+  --color-accent: #FFB74D;
+  --color-accent-hover: #ffa726;
+  --color-background: #F7F9F6;
+  --color-surface: #FFFFFF;
+  --color-border-custom: #E0E4DE;
+  
+  --font-primary: 'Poppins', system-ui, sans-serif;
+  --font-secondary: 'Inter', system-ui, sans-serif;
+}
+
+/* Custom Glassmorphism class helper */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(46, 125, 50, 0.05);
+}
+
+/* Material Symbols alignment */
+.material-symbols-rounded {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+.material-symbols-rounded.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Leaflet map styles container */
+.map-container {
+  height: 400px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  border: 1px solid rgba(255,255,255,0.4);
+  z-index: 1;
+}
+
+/* SVG Chart adjustments */
+.chart-svg-box {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-fade {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-skeleton {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scrollbar tweaks */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CFD8DC;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B0BEC5;
+}
+
+/* Custom Conic-Gradient Circular Gauge Progress bar */
+.conic-progress-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.conic-progress-inner {
+  width: 102px;
+  height: 102px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+}
