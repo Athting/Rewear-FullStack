@@ -2,6 +2,34 @@ import Listing from '../models/Listing.js';
 import User from '../models/User.js';
 import { uploadMultipleImages } from '../services/cloudinaryService.js';
 
+const getHostUrl = (req) => {
+  const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+  return `${protocol}://${req.get('host')}`;
+};
+
+const normalizeListingImages = (listing, req) => {
+  if (!listing) return null;
+  const hostUrl = getHostUrl(req);
+  
+  const normalizeItem = (item) => {
+    const plainItem = item.toObject ? item.toObject() : item;
+    if (plainItem.images && Array.isArray(plainItem.images)) {
+      plainItem.images = plainItem.images.map(img => {
+        if (img && img.startsWith('/uploads/')) {
+          return `${hostUrl}${img}`;
+        }
+        return img;
+      });
+    }
+    return plainItem;
+  };
+
+  if (Array.isArray(listing)) {
+    return listing.map(item => normalizeItem(item));
+  }
+  return normalizeItem(listing);
+};
+
 // @desc    Get Clothing Listings (Search, filter, paginate, sort)
 // @route   GET /api/listings
 // @access  Public
@@ -88,7 +116,7 @@ export const getListings = async (req, res, next) => {
       total,
       pages: Math.ceil(total / limit),
       currentPage: parseInt(page),
-      listings
+      listings: normalizeListingImages(listings, req)
     });
   } catch (error) {
     next(error);
@@ -107,7 +135,7 @@ export const getListingById = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Clothing listing not found' });
     }
 
-    res.status(200).json({ success: true, listing });
+    res.status(200).json({ success: true, listing: normalizeListingImages(listing, req) });
   } catch (error) {
     next(error);
   }
@@ -172,7 +200,7 @@ export const createListing = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      listing,
+      listing: normalizeListingImages(listing, req),
       message: 'Garment added to marketplace! +10 EcoPoints credited!'
     });
   } catch (error) {
@@ -207,7 +235,7 @@ export const updateListing = async (req, res, next) => {
 
     await listing.save();
 
-    res.status(200).json({ success: true, listing, message: 'Listing updated successfully' });
+    res.status(200).json({ success: true, listing: normalizeListingImages(listing, req), message: 'Listing updated successfully' });
   } catch (error) {
     next(error);
   }
