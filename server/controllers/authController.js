@@ -23,10 +23,11 @@ const generateRefreshToken = (userId) => {
 
 // Helper: Set Refresh Token Cookie
 const setRefreshTokenCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 };
@@ -184,7 +185,12 @@ export const logout = async (req, res, next) => {
       }
     }
 
-    res.clearCookie('refreshToken');
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax'
+    });
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     next(error);
