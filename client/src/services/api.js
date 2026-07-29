@@ -47,7 +47,7 @@ api.interceptors.response.use(
 
       try {
         // Request token refresh from backend
-        const response = await axios.post('/api/auth/refresh-token', {}, { withCredentials: true });
+        const response = await axios.post(`${backendUrl}/auth/refresh-token`, {}, { withCredentials: true });
         const { accessToken } = response.data;
         
         setGlobalAccessToken(accessToken);
