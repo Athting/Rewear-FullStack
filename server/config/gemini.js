@@ -3,8 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
+let apiKey = process.env.GEMINI_API_KEY;
+if (apiKey) {
+  apiKey = apiKey.trim().replace(/^["']|["']$/g, '');
+} else {
   console.warn("WARNING: GEMINI_API_KEY is not defined in environmental variables. AI features will fail.");
 }
 
