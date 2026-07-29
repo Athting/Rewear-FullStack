@@ -43,7 +43,7 @@ export const getRecommendations = async (req, res, next) => {
       recommendations.map(async (rec) => {
         const item = await Listing.findById(rec.matchedListingId).populate('ownerId', 'name avatar rating');
         const offerItem = await Listing.findById(rec.offeredClosetItemId);
-        
+
         return {
           ...rec,
           listing: item,
@@ -112,7 +112,7 @@ export const generateDescriptionFromVision = async (req, res, next) => {
 export const getGeminiDiagnostics = async (req, res, next) => {
   try {
     const rawKey = process.env.GEMINI_API_KEY;
-    
+
     if (!rawKey) {
       return res.status(200).json({
         success: false,
@@ -121,10 +121,10 @@ export const getGeminiDiagnostics = async (req, res, next) => {
     }
 
     const sanitizedKey = rawKey.trim().replace(/^["']|["']$/g, '');
-    
+
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const tempAi = new GoogleGenerativeAI(sanitizedKey);
-    
+
     // 1. Fetch all models authorized for this key
     let modelsList = [];
     try {
@@ -143,19 +143,19 @@ export const getGeminiDiagnostics = async (req, res, next) => {
     // 2. Attempt lightweight content generation using different models
     let testResponse = null;
     let modelUsed = 'gemini-1.5-flash';
-    
+
     try {
       const model = tempAi.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const result = await model.generateContent("Say 'Gemini 1.5 is functional!'");
       testResponse = result.response.text();
-    } catch (err1.5) {
+    } catch (err15) {
       try {
         modelUsed = 'gemini-2.0-flash';
         const model = tempAi.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const result = await model.generateContent("Say 'Gemini 2.0 is functional!'");
         testResponse = result.response.text();
-      } catch (err2.0) {
-        throw new Error(`Both gemini-1.5-flash and gemini-2.0-flash failed. 1.5 Error: ${err1.5.message}. 2.0 Error: ${err2.0.message}`);
+      } catch (err20) {
+        throw new Error(`Both gemini-1.5-flash and gemini-2.0-flash failed. 1.5 Error: ${err15.message}. 2.0 Error: ${err20.message}`);
       }
     }
 
@@ -165,16 +165,13 @@ export const getGeminiDiagnostics = async (req, res, next) => {
       modelUsed,
       response: testResponse,
       availableModels: modelsList,
-      keyLength: rawKey.length,
-      keySnippet: `${rawKey.substring(0, 5)}...${rawKey.substring(rawKey.length - 4)}`,
-      sanitizedSnippet: `${sanitizedKey.substring(0, 5)}...${sanitizedKey.substring(sanitizedKey.length - 4)}`
+      keyLength: rawKey.length
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: 'Gemini API test failed.',
-      errorMessage: err.message,
-      errorStack: err.stack
+      errorMessage: err.message
     });
   }
 };
