@@ -79,11 +79,15 @@ app.use(cors({
   credentials: true
 }));
 
+// Trust proxy behind reverse proxies like Render/Vercel
+app.set('trust proxy', 1);
+
 // Express limits rate to protect API
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again after 15 minutes'
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  validate: { xForwardedForHeader: false }
 });
 app.use('/api/', limiter);
 
