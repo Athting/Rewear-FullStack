@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       setUser(normalized);
       setIsAuthenticated(true);
     } catch (error) {
-      console.log('No active session found.');
+      console.warn('Session check failed detail:', error);
       setGlobalAccessToken(null);
       safeRemoveLocalStorage('rewear_user');
       setUser(null);
