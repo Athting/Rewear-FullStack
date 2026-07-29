@@ -29,7 +29,11 @@ export const SocketProvider = ({ children }) => {
       .catch(err => console.error('Failed to retrieve notifications:', err));
 
     // Connect using VITE_API_URL in production, fallback relative for local proxy
-    const socketUrl = import.meta.env.VITE_API_URL || '/';
+    let socketUrl = import.meta.env.VITE_API_URL || '/';
+    if (socketUrl !== '/') {
+      // Strip trailing /api or /api/
+      socketUrl = socketUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+    }
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling']
     });
